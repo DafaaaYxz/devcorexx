@@ -24,7 +24,7 @@ const form = reactive({ username: '', password: '', aiName: '', devName: '' });
 
 const handleReg = async () => {
   try {
-    await axios.post('http://146.190.98.149:5000/api/auth/register', form);
+    await axios.post('https://devcore-backends.vercel.app/api/auth/register', form);
     alert('Request Submitted. Please wait for Admin Approval.');
     router.push('/login');
   } catch(e) {

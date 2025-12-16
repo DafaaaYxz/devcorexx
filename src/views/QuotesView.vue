@@ -14,7 +14,7 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 const quotes = ref([]);
 onMounted(async () => {
-  const res = await axios.get('http://146.190.98.149:5000/api/admin/quotes');
+  const res = await axios.get('https://devcore-backends.vercel.app/api/admin/quotes');
   quotes.value = res.data;
 });
 </script>

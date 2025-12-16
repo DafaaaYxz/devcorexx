@@ -67,7 +67,7 @@ import axios from 'axios';
 
 const auth = useAuthStore();
 const pass = reactive({ old: '', new: '' });
-const API = 'http://146.190.98.149:5000/api';
+const API = 'https://devcore-backends.vercel.app/api';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 
 const changePass = async () => {

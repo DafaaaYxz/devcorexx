@@ -40,7 +40,7 @@ const tab = ref('users');
 const users = ref([]);
 const quotes = ref([]);
 const config = ref({ maintenanceMode: false, apiKeys: [] }); // Default value
-const API = 'http://146.190.98.149:5000/api/admin';
+const API = 'https://devcore-backends.vercel.app/api/admin';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 
 // Fetch Data

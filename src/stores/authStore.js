@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 
 // HARDCODED IP VPS
-const API_URL = 'http://146.190.98.149:5000/api';
+const API_URL = 'https://devcore-backends.vercel.app/api';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -26,18 +26,6 @@ export const useAuthStore = defineStore('auth', {
     async fetchProfile() {
       if (!this.token) return;
       try {
-        // Kita gunakan endpoint khusus atau endpoint auth yang me-return user info
-        // Disini kita asumsi backend support getMe atau kita update data dari localStorage jika login ulang diperlukan
-        // Namun, cara paling mudah tanpa ubah backend banyak adalah re-fetch data session jika ada, 
-        // tapi disini kita update user object manual jika perlu.
-        
-        // Agar simple dan efektif: Kita panggil endpoint login check (jika ada) atau biarkan
-        // logic frontend membaca user.aiName yang dikirim saat login.
-        // Jika admin approve, user harusnya dapat data baru. 
-        // Kita tambahkan endpoint simple di backend nanti "getMe", tapi untuk sekarang
-        // kita andalkan data yang tersimpan. 
-        
-        // NOTE: Agar "Real-time" berubah saat diapprove, user biasanya perlu refresh halaman.
       } catch (e) {
         console.error("Failed to refresh profile");
       }

@@ -22,7 +22,7 @@ const router = useRouter();
 
 const checkStatus = async () => {
     try {
-        const res = await axios.get('http://146.190.98.149:5000/api/system/config'); // Pastikan route public ini ada/dibuat
+        const res = await axios.get('https://devcore-backends.vercel.app/api/system/config'); // Pastikan route public ini ada/dibuat
         if(!res.data.maintenance) router.push('/');
         else alert('System is still in maintenance.');
     } catch(e) { alert('System Offline.'); }

@@ -4,7 +4,7 @@
     
     <div class="settings-grid">
         
-        <!-- VISUAL SETTINGS -->
+        <!-- VISUAL -->
         <div class="card settings-card">
             <h3 class="retro-font section-title"><i class="fas fa-eye"></i> VISUAL INTERFACE</h3>
             <div class="setting-item">
@@ -21,7 +21,7 @@
             </div>
         </div>
 
-        <!-- AUTHENTICATION (SSEO) -->
+        <!-- AUTH SSEO (PERBAIKAN UI) -->
         <div class="card settings-card">
             <h3 class="retro-font section-title"><i class="fas fa-shield-alt"></i> SECURE LOGIN (SSEO)</h3>
             
@@ -39,40 +39,44 @@
             
             <div class="setting-item" v-if="settings.sseoEnabled">
                 <label>ACCESS CODE (6 DIGIT)</label>
-                <div class="code-display">
+                
+                <!-- PERBAIKAN LAYOUT INPUT KECIL -->
+                <div class="code-wrapper">
                     <input v-model="settings.sseoCode" class="input-code" maxlength="6" placeholder="******">
-                    <button @click="saveSettings" class="btn-save" title="Save Code">
+                    <button @click="saveSettings" class="btn-save" title="Save">
                         <i class="fas fa-save"></i>
                     </button>
                 </div>
+                
                 <small style="color:#666; display:block; margin-top:5px;">
-                    <i class="fas fa-info-circle"></i> Use this code to login securely without password.
+                    Code used for passwordless login.
                 </small>
             </div>
         </div>
 
-        <!-- 2-FACTOR AUTH -->
+        <!-- 2-FACTOR AUTH (REALTIME FIX) -->
         <div class="card settings-card">
             <h3 class="retro-font section-title"><i class="fas fa-qrcode"></i> 2-FACTOR AUTH</h3>
             
             <div class="qr-container">
+                <!-- Cek Langsung ke Auth Store User -->
                 <div v-if="auth.user?.twoFactorSecret" class="qr-box">
                     <img 
-                        :src="`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/DevCORE:${auth.user.username}?secret=${auth.user.twoFactorSecret}&issuer=DevCORE`" 
+                        :src="getQrUrl(auth.user.username, auth.user.twoFactorSecret)" 
                         class="qr-img"
-                        alt="QR Code Loading..."
+                        alt="QR Code"
                     >
                     <div class="secret-key">
                         KEY: <span style="color:var(--accent); user-select:all;">{{ auth.user.twoFactorSecret }}</span>
                     </div>
                 </div>
-                <div v-else class="error-msg">
-                    <i class="fas fa-exclamation-triangle"></i> Secret Key Not Found. Re-login or Contact Admin.
+                <div v-else class="loading-msg">
+                    <i class="fas fa-circle-notch fa-spin"></i> Generating Security Key...
                 </div>
             </div>
             
             <p style="font-size:0.8rem; color:#888; margin-top:15px; text-align:center;">
-                Scan with Google Authenticator / Authy.
+                Scan with Google Authenticator.
             </p>
         </div>
 
@@ -81,7 +85,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted } from 'vue';
+import { reactive, onMounted, computed } from 'vue';
 import { useAuthStore } from '../stores/authStore';
 import axios from 'axios';
 
@@ -94,6 +98,10 @@ const settings = reactive({
 const API = 'https://wanzofc-dev.vercel.app/api';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 
+const getQrUrl = (user, secret) => {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/DevCORE:${user}?secret=${secret}&issuer=DevCORE`;
+};
+
 const loadSettings = () => {
     if(auth.user) {
         settings.font = auth.user.fontPreference || 'Roboto';
@@ -104,11 +112,10 @@ const loadSettings = () => {
 
 const toggleSSEO = () => {
     settings.sseoEnabled = !settings.sseoEnabled;
-    // Auto save saat toggle
-    saveSettings();
+    saveSettings(true); // Silent save
 };
 
-const saveSettings = async () => {
+const saveSettings = async (silent = false) => {
     try {
         await axios.post(`${API}/auth/settings`, {
             font: settings.font,
@@ -116,15 +123,16 @@ const saveSettings = async () => {
             sseoCodeNew: settings.sseoCode
         }, headers);
         
-        // Refresh store & apply font immediately
         await auth.fetchProfile();
         auth.applyFont(settings.font);
         
+        if(!silent) alert('Settings Saved.');
     } catch(e) { alert('Failed to save settings'); }
 };
 
-onMounted(() => {
-    auth.fetchProfile().then(loadSettings);
+onMounted(async () => {
+    await auth.fetchProfile(); // WAJIB: Ambil data terbaru dari backend (Secret Key)
+    loadSettings();
 });
 </script>
 
@@ -136,14 +144,14 @@ onMounted(() => {
 }
 
 .setting-item { margin-bottom: 20px; }
-.setting-item label { display: block; font-size: 0.75rem; color: #aaa; margin-bottom: 8px; font-weight: bold; font-family: 'Roboto', sans-serif; }
+.setting-item label { display: block; font-size: 0.75rem; color: #aaa; margin-bottom: 8px; font-weight: bold; }
 
 /* CUSTOM SELECT */
 .select-wrapper { position: relative; }
 .custom-select { appearance: none; cursor: pointer; background: #020617; color: white; font-family: 'Roboto', sans-serif; }
 .select-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--accent); pointer-events: none; }
 
-/* TOGGLE SWITCH ANIMATED */
+/* TOGGLE SWITCH */
 .toggle-switch {
     width: 50px; height: 26px; background: #333; border-radius: 13px; position: relative; cursor: pointer; transition: 0.3s;
 }
@@ -157,27 +165,37 @@ onMounted(() => {
 .text-success { color: var(--success); }
 .text-dim { color: #666; }
 
-/* CODE INPUT */
-.code-display { display: flex; gap: 10px; }
+/* SSEO CODE INPUT (FIXED STYLE) */
+.code-wrapper { 
+    display: flex; gap: 10px; align-items: center; 
+    max-width: 200px; /* Batasi lebar agar input kecil */
+}
 .input-code { 
     flex: 1; background: #050a14; border: 1px solid var(--accent); 
     color: var(--accent); font-family: 'Fira Code', monospace; 
-    font-size: 1.2rem; text-align: center; padding: 10px; letter-spacing: 5px; border-radius: 4px;
+    font-size: 1rem; text-align: center; padding: 8px; letter-spacing: 3px; border-radius: 4px;
+    width: 100%;
 }
-.btn-save { background: var(--primary); border: none; color: white; width: 50px; cursor: pointer; border-radius: 4px; font-size: 1.2rem; }
+.btn-save { 
+    background: var(--primary); border: none; color: white; 
+    width: 40px; height: 38px; cursor: pointer; border-radius: 4px; font-size: 1rem; 
+    display: flex; align-items: center; justify-content: center;
+}
 .btn-save:hover { background: var(--accent); }
 
 /* QR CODE */
-.qr-container { display: flex; justify-content: center; }
+.qr-container { display: flex; justify-content: center; min-height: 150px; align-items: center; }
 .qr-box { 
     text-align: center; background: white; padding: 15px; 
     border-radius: 8px; width: fit-content; 
     box-shadow: 0 0 20px rgba(255,255,255,0.1);
 }
-.qr-img { width: 160px; height: 160px; display: block; margin: 0 auto; }
+.qr-img { width: 150px; height: 150px; display: block; margin: 0 auto; }
 .secret-key { 
     margin-top: 15px; font-family: 'Courier New'; font-size: 0.85rem; 
     background: #000; color: white; padding: 8px; border-radius: 4px; 
     display: inline-block; width: 100%; word-break: break-all;
 }
+.loading-msg { color: var(--accent); font-family: 'Press Start 2P'; font-size: 0.6rem; animation: pulse 1s infinite; }
+@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 </style>

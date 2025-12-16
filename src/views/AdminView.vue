@@ -10,11 +10,17 @@
         </div>
     </div>
 
-    <!-- Components -->
+    <!-- Load Components -->
     <UserManager v-if="tab==='users'" :users="users" @approve="toggleApprove" @changeRole="handleChangeRole" />
     <ApiManager v-if="tab==='api'" :keys="config.apiKeys || []" @add="addApiKey" @delete="delApiKey" />
     <QuotesManager v-if="tab==='quotes'" :quotes="quotes" @add="addQuote" @delete="delQuote" />
-    <SystemControl v-if="tab==='system'" :maintenance="config.maintenanceMode" @toggle="handleMaintenance" />
+    
+    <!-- System Control dengan Props Maintenance yang reaktif -->
+    <SystemControl 
+        v-if="tab==='system'" 
+        :maintenance="config.maintenanceMode" 
+        @toggle="handleMaintenance" 
+    />
 
   </div>
 </template>
@@ -38,30 +44,48 @@ const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 
 const loadData = async () => {
   try {
-      users.value = (await axios.get(`${API}/users`, headers)).data;
-      const configRes = await axios.get(`${API}/config`, headers);
-      config.value = configRes.data;
-      quotes.value = (await axios.get(`${API}/quotes`, headers)).data;
+      // Load Users
+      const uRes = await axios.get(`${API}/users`, headers);
+      users.value = uRes.data;
+      
+      // Load Config (Penting untuk Status Maintenance)
+      const cRes = await axios.get(`${API}/config`, headers);
+      config.value = cRes.data;
+      
+      // Load Quotes
+      const qRes = await axios.get(`${API}/quotes`, headers);
+      quotes.value = qRes.data;
   } catch (e) { alert('Error Loading Data'); }
 };
 
+// Actions User
 const toggleApprove = async (id, status) => { await axios.post(`${API}/approve`, { userId: id, approve: status }, headers); loadData(); };
 const handleChangeRole = async (id, newRole) => { 
-    if(!confirm(`Change user role to ${newRole}?`)) return;
+    if(!confirm(`Change role to ${newRole}?`)) return;
     await axios.post(`${API}/role`, { userId: id, newRole }, headers); 
     loadData(); 
 };
 
+// Actions API & Quotes
 const addApiKey = async (data) => { await axios.post(`${API}/apikey`, data, headers); loadData(); };
 const delApiKey = async (id) => { await axios.delete(`${API}/apikey/${id}`, headers); loadData(); };
 const addQuote = async (data) => { await axios.post(`${API}/quotes`, data, headers); loadData(); };
 const delQuote = async (id) => { await axios.delete(`${API}/quotes/${id}`, headers); loadData(); };
-const handleMaintenance = async (status) => {
+
+// LOGIKA MAINTENANCE (FIXED)
+const handleMaintenance = async (newStatus) => {
     try {
-        await axios.post(`${API}/maintenance`, { enabled: status }, headers);
-        config.value.maintenanceMode = status;
-        alert(`System Maintenance: ${status ? 'ON' : 'OFF'}`);
-    } catch(e) { alert('Failed'); }
+        // Kirim status baru ke server (true/false)
+        const res = await axios.post(`${API}/maintenance`, { enabled: newStatus }, headers);
+        
+        // Update local state langsung dari respons server agar UI berubah
+        config.value.maintenanceMode = res.data.maintenanceMode;
+        
+        alert(res.data.message); // Tampilkan alert sukses dari server
+    } catch(e) {
+        alert('Failed to update maintenance mode');
+        loadData(); // Reload data asli jika gagal
+    }
 };
 
 onMounted(loadData);

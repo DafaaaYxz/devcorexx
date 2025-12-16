@@ -2,20 +2,24 @@
   <nav class="navbar" v-if="!configStore.loadingBoot">
     <div class="nav-container">
       <div class="logo retro-font">DevCORE <span class="ver">v2.2</span></div>
-      
-      <button class="menu-toggle" @click="isOpen = !isOpen">
-        <i class="fas" :class="isOpen ? 'fa-times' : 'fa-bars'"></i>
-      </button>
+      <button class="menu-toggle" @click="isOpen = !isOpen"><i class="fas" :class="isOpen ? 'fa-times' : 'fa-bars'"></i></button>
 
       <div :class="['nav-links', { 'active': isOpen }]">
-        <!-- TOMBOL UPGRADE PLAN (BARU) -->
-        <router-link to="/pricing" class="btn-upgrade retro-font">
-            <i class="fas fa-rocket"></i> UPGRADE PLAN
-        </router-link>
-
+        <router-link to="/pricing" class="btn-upgrade retro-font"><i class="fas fa-rocket"></i> UPGRADE</router-link>
         <router-link to="/" @click="isOpen = false" class="retro-font">HOME</router-link>
         
         <template v-if="authStore.isAuthenticated">
+          
+          <!-- MENU DEMON KHUSUS -->
+          <router-link 
+            v-if="isDemonOrAdmin" 
+            to="/demon" 
+            @click="isOpen = false" 
+            class="retro-font demon-link"
+          >
+            <i class="fas fa-skull"></i> DEMON
+          </router-link>
+
           <router-link to="/terminal" @click="isOpen = false" class="retro-font">TERMINAL</router-link>
           <router-link to="/history" @click="isOpen = false" class="retro-font">HISTORY</router-link>
           <router-link to="/quotes" @click="isOpen = false" class="retro-font">QUOTES</router-link>
@@ -25,9 +29,7 @@
             <router-link to="/profile" @click="isOpen = false" class="retro-font profile-link">
                 <img :src="authStore.user?.avatarUrl" class="nav-avatar" /> PROFILE
             </router-link>
-            
             <router-link v-if="authStore.isAdmin" to="/admin" @click="isOpen = false" class="retro-font text-gold">ADMIN</router-link>
-            
             <a @click="handleLogout" class="retro-font text-danger">LOGOUT</a>
           </div>
         </template>
@@ -39,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuthStore } from '../stores/authStore';
 import { useConfigStore } from '../stores/configStore';
 import { useRouter } from 'vue-router';
@@ -48,6 +50,11 @@ const authStore = useAuthStore();
 const configStore = useConfigStore();
 const router = useRouter();
 const isOpen = ref(false);
+
+const isDemonOrAdmin = computed(() => {
+    const role = authStore.user?.role;
+    return role === 'demon' || role === 'admin';
+});
 
 const handleLogout = () => {
   isOpen.value = false;
@@ -63,26 +70,19 @@ const handleLogout = () => {
 .ver { font-size: 0.6rem; color: var(--accent); }
 .text-danger { color: var(--danger) !important; cursor: pointer; }
 .text-gold { color: #fbbf24 !important; }
-.nav-links { display: flex; gap: 20px; align-items: center; }
+
+.nav-links { display: flex; gap: 15px; align-items: center; }
 .nav-links a { color: var(--text-dim); font-size: 0.7rem; transition: 0.3s; }
 .nav-links a:hover, .nav-links a.router-link-active { color: var(--accent); }
 .menu-toggle { display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
 .profile-group { display: flex; gap: 15px; border-left: 1px solid #333; padding-left: 15px; align-items: center; }
 .nav-avatar { width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin-right: 5px; border: 1px solid var(--accent); }
 
-/* STYLE KHUSUS TOMBOL UPGRADE */
-.btn-upgrade {
-    background: linear-gradient(45deg, #7f1d1d, #ef4444);
-    color: white !important;
-    padding: 8px 15px;
-    border-radius: 4px;
-    font-weight: bold;
-    border: 1px solid #fca5a5;
-    animation: pulse 2s infinite;
-}
-.btn-upgrade:hover { transform: scale(1.05); }
+/* STYLE KHUSUS DEMON */
+.demon-link { color: #ef4444 !important; font-weight: bold; animation: glow 2s infinite; }
+@keyframes glow { 0% { text-shadow: 0 0 5px #ef4444; } 50% { text-shadow: 0 0 15px #ef4444; } 100% { text-shadow: 0 0 5px #ef4444; } }
 
-@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+.btn-upgrade { background: linear-gradient(45deg, #7f1d1d, #ef4444); color: white !important; padding: 6px 12px; border-radius: 4px; font-weight: bold; border: 1px solid #fca5a5; }
 
 @media (max-width: 768px) {
   .menu-toggle { display: block; }

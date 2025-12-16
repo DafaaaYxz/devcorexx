@@ -11,6 +11,7 @@ import MaintenanceView from '../views/MaintenanceView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import DocsView from '../views/DocsView.vue'
 import PricingView from '../views/PricingView.vue'
+import DemonView from '../views/DemonView.vue' // Import Baru
 
 const router = createRouter({
   history: createWebHistory(),
@@ -27,7 +28,10 @@ const router = createRouter({
     { path: '/docs', component: DocsView, meta: { requiresAuth: true } },
     { path: '/terminal', component: TerminalView, meta: { requiresAuth: true } },
     { path: '/history', component: TerminalView, meta: { requiresAuth: true } },
-    { path: '/admin', component: AdminView, meta: { requiresAuth: true, adminOnly: true } }
+    { path: '/admin', component: AdminView, meta: { requiresAuth: true, adminOnly: true } },
+    
+    // DEMON ROUTE
+    { path: '/demon', component: DemonView, meta: { requiresAuth: true } }
   ]
 })
 

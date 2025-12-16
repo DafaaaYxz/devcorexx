@@ -30,7 +30,7 @@
         </button>
       </div>
       
-      <!-- CHAT AREA (WHATSAPP STYLE) -->
+      <!-- CHAT AREA -->
       <div class="chat-area" ref="chatBox">
         <div v-if="messages.length === 0" class="welcome-msg">
             <div style="color:var(--primary); margin-bottom:10px;">SYSTEM: {{ currentAiName }} KERNEL READY.</div>
@@ -85,12 +85,7 @@ const showSidebar = ref(false);
 const chatBox = ref(null);
 const inputField = ref(null);
 const fileInput = ref(null);
-
-// GUNAKAN API URL YANG BENAR
-// Jika deploy di Vercel, pastikan backend juga di Vercel. 
-// Jika backend masih di VPS, gunakan IP VPS.
-const API = 'https://wanzofc-dev.vercel.app/api'; 
-
+const API = 'https://wanzofc-dev.vercel.app/api';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 const currentAiName = computed(() => auth.user?.aiName || 'DevCORE');
 
@@ -118,7 +113,7 @@ const createNewSession = async () => {
         loadSession(res.data._id);
         return res.data._id;
     } catch (e) {
-        alert("Failed to create session. Check connection.");
+        alert("Gagal membuat sesi chat. Cek koneksi.");
         return null;
     }
 };
@@ -154,29 +149,29 @@ const handleFileUpload = (event) => {
     event.target.value = ''; 
 };
 
-// --- LOGIKA CHAT "OPTIMIS" ---
+// --- CHAT LOGIC (ROBUST HANDLING) ---
 const sendMessage = async (overrideMsg = null) => {
   const txt = overrideMsg || inputText.value;
   if(!txt.trim() || loading.value) return;
   if(!overrideMsg) inputText.value = '';
 
-  // 1. TAMPILKAN PESAN USER DULUAN (Supaya gak dikira error)
+  // 1. Tampilkan User Message
   messages.value.push({ role: 'user', content: overrideMsg ? `[FILE ANALYSIS]` : txt });
   scrollToBottom();
   loading.value = true;
 
   try {
-    // 2. Cek Sesi (Background Process)
+    // 2. Pastikan Session Ada
     if(!currentSessionId.value) {
         const newId = await createNewSession();
-        if(!newId) throw new Error("Session creation failed");
+        if(!newId) throw new Error("Gagal membuat sesi.");
     }
 
-    // 3. Siapkan Tempat Jawaban AI
+    // 3. Placeholder Pesan AI
     messages.value.push({ role: 'model', content: '' }); 
     const aiMsgIndex = messages.value.length - 1;
 
-    // 4. Request ke API
+    // 4. Request ke Backend
     const response = await fetch(`${API}/chat/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth.token}` },
@@ -194,17 +189,12 @@ const sendMessage = async (overrideMsg = null) => {
       if(messages.value[aiMsgIndex]) messages.value[aiMsgIndex].content += chunk;
       scrollToBottom();
     }
-    loadSessions(); // Update judul sesi kalau berubah
+    loadSessions(); 
   } catch(e) { 
-      // Jika error, kasih tau di bubble AI yang tadi dibuat
+      // Handle Error Connection / Maintenance
       if(messages.value.length > 0) {
           const lastMsg = messages.value[messages.value.length-1];
-          // Pastikan kita tidak menimpa pesan user jika bubble AI belum terbuat (rare case)
-          if(lastMsg.role === 'model') {
-              lastMsg.content += "\n[ERROR: Connection Failed / Server Offline]";
-          } else {
-              messages.value.push({ role: 'model', content: "[ERROR: Connection Failed]" });
-          }
+          if(lastMsg.role === 'model') lastMsg.content += "\n[SYSTEM ERROR: Koneksi Terputus / API Bermasalah]";
       }
   } 
   finally { 
@@ -219,6 +209,7 @@ onMounted(async () => { await auth.fetchProfile(); loadSessions(); setTimeout(()
 </script>
 
 <style scoped>
+/* CSS SAMA SEPERTI SEBELUMNYA (WHATSAPP STYLE) */
 .layout-wrapper { display: flex; height: calc(100vh - 65px); background: #000; overflow: hidden; position: relative; }
 .sidebar { width: 250px; background: #050a14; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; position: absolute; height: 100%; left: 0; top: 0; transition: transform 0.3s ease; }
 .sidebar.collapsed { transform: translateX(-100%); }
@@ -238,7 +229,6 @@ onMounted(async () => { await auth.fetchProfile(); loadSessions(); setTimeout(()
 .btn-reset-header:hover { background: #b91c1c; }
 .btn-sidebar-toggle { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
 
-/* CHAT BUBBLES */
 .chat-area { flex: 1; overflow-y: auto; padding: 20px; font-family: 'Roboto', sans-serif; scroll-behavior: smooth; display: flex; flex-direction: column; gap: 20px; }
 .message-row { display: flex; width: 100%; }
 .message-row.user { justify-content: flex-end; }

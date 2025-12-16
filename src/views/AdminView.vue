@@ -40,7 +40,7 @@ const tab = ref('users');
 const users = ref([]);
 const quotes = ref([]);
 const config = ref({ maintenanceMode: false, apiKeys: [] }); // Default value
-const API = 'https://devcore-backends.vercel.app/api/admin';
+const API = 'https://wanzofc-dev.vercel.app/api/admin';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 
 // Fetch Data

@@ -3,7 +3,7 @@
     <h1 class="retro-font text-center" style="margin-bottom:30px; color:var(--primary)">USER PROFILE</h1>
     
     <div class="profile-grid">
-        <!-- CARD 1: IDENTITY -->
+        <!-- IDENTITY CARD -->
         <div class="card">
             <h3 class="retro-font section-title">IDENTITY</h3>
             <div class="avatar-box">
@@ -23,9 +23,37 @@
                     {{ auth.user?.isApproved ? 'APPROVED' : 'PENDING' }}
                 </div>
             </div>
+            <div class="info-row">
+                <label>LAST LOGIN</label>
+                <div class="val" style="font-size:0.7rem;">{{ formatDate(auth.user?.lastLogin) }}</div>
+            </div>
         </div>
 
-        <!-- CARD 2: SECURITY (CHANGE PASS) -->
+        <!-- STATISTICS CARD (BARU) -->
+        <div class="card">
+            <h3 class="retro-font section-title">STATISTICS</h3>
+            
+            <div class="stat-box">
+                <div class="info-row">
+                    <label>API REQUESTS</label>
+                    <div class="val">{{ auth.user?.apiReqCount || 0 }} Hits</div>
+                </div>
+                <div class="info-row">
+                    <label>TOKEN USAGE ⚡</label>
+                    <div class="val text-gold">{{ auth.user?.tokenUsage || 0 }} Tokens</div>
+                </div>
+                <div class="info-row">
+                    <label>ACCOUNT HEALTH 💗</label>
+                    <div class="val" style="color:#f472b6;">{{ auth.user?.healthStatus || '100% (HEALTHY)' }}</div>
+                </div>
+                <div class="info-row">
+                    <label>TERMINAL THEME 🎨</label>
+                    <div class="val" style="color:var(--primary);">CYBER BLUE</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECURITY CARD -->
         <div class="card">
             <h3 class="retro-font section-title">SECURITY</h3>
             <form @submit.prevent="changePass">
@@ -39,12 +67,12 @@
             </form>
         </div>
 
-        <!-- CARD 3: DEVELOPER API -->
+        <!-- API KEY CARD -->
         <div class="card full-width">
             <h3 class="retro-font section-title">DEVELOPER API</h3>
             <p style="font-size:0.8rem; color:#888; margin-bottom:15px;">
                 Use this API Key to access DevCORE AI via cURL, Python, or Postman.
-                Read <router-link to="/docs" style="color:var(--accent)">Documentation</router-link> for usage.
+                Read <router-link to="/docs" style="color:var(--accent)">Documentation</router-link>.
             </p>
             
             <div class="api-box">
@@ -67,8 +95,13 @@ import axios from 'axios';
 
 const auth = useAuthStore();
 const pass = reactive({ old: '', new: '' });
-const API = 'https://devcore-backends.vercel.app/api';
+const API = 'https://wanzofc-dev.vercel.app/api';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
+
+const formatDate = (dateString) => {
+    if(!dateString) return 'NEVER';
+    return new Date(dateString).toLocaleString();
+};
 
 const changePass = async () => {
     try {
@@ -81,8 +114,8 @@ const changePass = async () => {
 const generateKey = async () => {
     if(!confirm('Generate new API Key? Old key will stop working.')) return;
     try {
-        const res = await axios.post(`${API}/auth/generate-key`, {}, headers);
-        auth.fetchProfile(); // Refresh store
+        await axios.post(`${API}/auth/generate-key`, {}, headers);
+        auth.fetchProfile(); 
         alert('New API Key Generated!');
     } catch(e) { alert('Error generating key'); }
 };
@@ -100,9 +133,10 @@ onMounted(() => {
 .avatar-box { text-align: center; margin-bottom: 20px; }
 .avatar-img { width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--primary); background: #000; }
 
-.info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; border-bottom: 1px solid #111; padding-bottom: 5px; }
-.info-row label { color: #666; font-size: 0.7rem; }
+.info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.8rem; border-bottom: 1px solid #111; padding-bottom: 5px; align-items: center; }
+.info-row label { color: #666; font-size: 0.7rem; font-weight: bold; }
 .info-row .val { color: #ccc; font-family: 'Courier New'; font-weight: bold; }
+.text-gold { color: #fbbf24; }
 
 .api-box { display: flex; gap: 10px; align-items: center; background: #000; padding: 15px; border: 1px solid var(--accent); border-radius: 4px; }
 .key-display { flex: 1; font-family: 'Courier New'; font-size: 1rem; color: var(--accent); letter-spacing: 1px; word-break: break-all; }

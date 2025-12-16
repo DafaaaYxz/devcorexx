@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 
 // HARDCODED IP VPS
-const API_URL = 'https://devcore-backends.vercel.app/api';
+const API_URL = 'https://wanzofc-dev.vercel.app/api';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({

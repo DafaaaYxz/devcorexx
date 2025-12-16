@@ -10,6 +10,7 @@ import AboutView from '../views/AboutView.vue'
 import MaintenanceView from '../views/MaintenanceView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import DocsView from '../views/DocsView.vue'
+import PricingView from '../views/PricingView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -19,9 +20,9 @@ const router = createRouter({
     { path: '/register', component: RegisterView },
     { path: '/about', component: AboutView },
     { path: '/quotes', component: QuotesView },
+    { path: '/pricing', component: PricingView },
     { path: '/maintenance', component: MaintenanceView },
     
-    // Protected Routes
     { path: '/profile', component: ProfileView, meta: { requiresAuth: true } },
     { path: '/docs', component: DocsView, meta: { requiresAuth: true } },
     { path: '/terminal', component: TerminalView, meta: { requiresAuth: true } },

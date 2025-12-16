@@ -1,6 +1,5 @@
 <template>
   <div class="layout-wrapper">
-    <!-- SIDEBAR SESSION -->
     <div class="sidebar" :class="{ 'collapsed': !showSidebar }">
       <div class="sidebar-header">
         <span v-if="showSidebar" class="retro-font" style="font-size:0.7rem">SESSIONS</span>
@@ -15,9 +14,7 @@
       </div>
     </div>
 
-    <!-- MAIN TERMINAL AREA -->
     <div class="term-container">
-      <!-- HEADER -->
       <div class="term-header retro-font">
         <div style="display:flex; align-items:center; gap:10px;">
             <button v-if="!showSidebar" @click="showSidebar = true" class="btn-sidebar-toggle"><i class="fas fa-folder-open"></i></button>
@@ -31,7 +28,6 @@
         </button>
       </div>
       
-      <!-- CHAT AREA (LAYOUT WHATSAPP STYLE) -->
       <div class="chat-area" ref="chatBox">
         <div v-if="messages.length === 0" class="welcome-msg">
             <div style="color:var(--primary); margin-bottom:10px;">SYSTEM: {{ currentAiName }} KERNEL READY.</div>
@@ -39,26 +35,19 @@
         </div>
         
         <div v-for="(msg, i) in messages" :key="i" :class="['message-row', msg.role]">
-          <!-- Bubble Container -->
           <div class="msg-bubble">
-            <!-- Sender Label -->
             <div class="sender retro-font">{{ msg.role === 'user' ? 'USER' : currentAiName }}</div>
-            
-            <!-- AI Content (Smart Parsing) -->
             <div v-if="msg.role === 'model'" class="content-wrapper">
               <template v-for="(part, idx) in parseMessage(msg.content)" :key="idx">
                 <CodeCard v-if="part.type === 'code'" :content="part.content" />
                 <div v-else class="text-content" v-html="formatText(part.content)"></div>
               </template>
             </div>
-            
-            <!-- User Content -->
             <div v-else class="text-content" v-html="formatText(msg.content)"></div>
           </div>
         </div>
       </div>
 
-      <!-- INPUT AREA -->
       <div class="input-area">
         <input type="file" ref="fileInput" @change="handleFileUpload" style="display:none">
         <button @click="$refs.fileInput.click()" class="btn-tool" title="Upload File"><i class="fas fa-paperclip"></i></button>
@@ -89,7 +78,6 @@ const loading = ref(false);
 const showSidebar = ref(false);
 const chatBox = ref(null);
 const inputField = ref(null);
-const fileInput = ref(null);
 const API = 'https://wanzofc-dev.vercel.app/api';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 const currentAiName = computed(() => auth.user?.aiName || 'DevCORE');
@@ -124,7 +112,6 @@ const deleteSession = async (id) => {
 const getSessionName = (id) => { const s = sessions.value.find(s => s._id === id); return s ? s.title : 'UNKNOWN'; };
 
 const parseMessage = (fullText) => {
-  if(!fullText) return [];
   const count = (fullText.match(/```/g) || []).length;
   let safeText = fullText + (count % 2 !== 0 ? '\n```' : '');
   return safeText.split(/(```[\s\S]*?```)/g).map(part => ({
@@ -151,7 +138,6 @@ const sendMessage = async (overrideMsg = null) => {
   const txt = overrideMsg || inputText.value;
   if(!txt.trim() || loading.value) return;
   if(!overrideMsg) inputText.value = '';
-  
   if(!currentSessionId.value) await createNewSession();
 
   messages.value.push({ role: 'user', content: overrideMsg ? `[FILE ANALYSIS]` : txt });
@@ -161,45 +147,29 @@ const sendMessage = async (overrideMsg = null) => {
   try {
     messages.value.push({ role: 'model', content: '' }); 
     const aiMsgIndex = messages.value.length - 1;
-
     const response = await fetch(`${API}/chat/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth.token}` },
       body: JSON.stringify({ message: txt, sessionId: currentSessionId.value })
     });
-
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
       const chunk = decoder.decode(value, { stream: true });
-      if(messages.value[aiMsgIndex]) {
-          messages.value[aiMsgIndex].content += chunk;
-      }
+      if(messages.value[aiMsgIndex]) messages.value[aiMsgIndex].content += chunk;
       scrollToBottom();
     }
     loadSessions();
   } catch(e) { 
-      if(messages.value.length > 0) {
-          const lastMsg = messages.value[messages.value.length-1];
-          if(lastMsg.role === 'model') lastMsg.content += "\n[SYSTEM ERROR: CONNECTION LOST]";
-      }
+      if(messages.value.length > 0) messages.value[messages.value.length-1].content += "\n[SYSTEM ERROR]";
   } 
-  finally { 
-      loading.value = false; 
-      scrollToBottom(); 
-      nextTick(() => inputField.value?.focus()); 
-  }
+  finally { loading.value = false; scrollToBottom(); nextTick(() => inputField.value?.focus()); }
 };
 
 const resetHistory = async () => { messages.value = []; }; 
-
-onMounted(async () => { 
-    await auth.fetchProfile();
-    await loadSessions();
-    setTimeout(() => inputField.value?.focus(), 500); 
-});
+onMounted(async () => { await auth.fetchProfile(); loadSessions(); setTimeout(() => inputField.value?.focus(), 500); });
 </script>
 
 <style scoped>
@@ -221,64 +191,19 @@ onMounted(async () => {
 .btn-reset-header { background: #7f1d1d; border: 1px solid #ef4444; color: white; padding: 5px 10px; font-size: 0.6rem; cursor: pointer; border-radius: 4px; }
 .btn-sidebar-toggle { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
 
-/* CHAT AREA MODIFICATIONS FOR WHATSAPP STYLE */
-.chat-area { 
-    flex: 1; overflow-y: auto; padding: 20px; 
-    font-family: 'Roboto', sans-serif; scroll-behavior: smooth; 
-    display: flex; flex-direction: column; gap: 20px;
-}
-
-.message-row { 
-    display: flex; 
-    width: 100%; 
-}
-
-/* USER ALIGN RIGHT */
-.message-row.user { 
-    justify-content: flex-end; 
-}
-
-/* AI ALIGN LEFT */
-.message-row.model { 
-    justify-content: flex-start; 
-}
-
-/* BUBBLE STYLE */
-.msg-bubble {
-    max-width: 85%;
-    padding: 15px;
-    border-radius: 10px;
-    position: relative;
-    border: 1px solid;
-    min-width: 100px;
-}
-
-/* User Specific Style */
-.message-row.user .msg-bubble {
-    background: rgba(59, 130, 246, 0.1); /* Blue tint */
-    border-color: var(--accent);
-    border-top-right-radius: 0; /* Corner effect */
-}
-.message-row.user .sender {
-    text-align: right;
-    color: var(--accent);
-}
-
-/* AI Specific Style */
-.message-row.model .msg-bubble {
-    background: rgba(30, 58, 138, 0.15); /* Darker blue tint */
-    border-color: var(--primary);
-    border-top-left-radius: 0; /* Corner effect */
-}
-.message-row.model .sender {
-    text-align: left;
-    color: var(--primary);
-}
-
+/* CHAT BUBBLES */
+.chat-area { flex: 1; overflow-y: auto; padding: 20px; font-family: 'Roboto', sans-serif; scroll-behavior: smooth; display: flex; flex-direction: column; gap: 20px; }
+.message-row { display: flex; width: 100%; }
+.message-row.user { justify-content: flex-end; }
+.message-row.model { justify-content: flex-start; }
+.msg-bubble { max-width: 85%; padding: 15px; border-radius: 10px; position: relative; border: 1px solid; min-width: 100px; }
+.message-row.user .msg-bubble { background: rgba(59, 130, 246, 0.1); border-color: var(--accent); border-top-right-radius: 0; }
+.message-row.user .sender { text-align: right; color: var(--accent); }
+.message-row.model .msg-bubble { background: rgba(30, 58, 138, 0.15); border-color: var(--primary); border-top-left-radius: 0; }
+.message-row.model .sender { text-align: left; color: var(--primary); }
 .sender { font-size: 0.65rem; margin-bottom: 8px; font-weight: bold; opacity: 0.8; }
 .content-wrapper { display: flex; flex-direction: column; gap: 10px; }
 .text-content { line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; color: #e2e8f0; word-break: break-word; }
-
 .welcome-msg { color: #444; font-family: 'Press Start 2P'; font-size: 0.7rem; line-height: 2; margin-bottom: 20px; text-align: center; }
 
 .input-area { padding: 15px; background: #050505; display: flex; align-items: center; gap: 10px; border-top: 1px solid #1e293b; }

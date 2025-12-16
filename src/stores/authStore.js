@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
-// HARDCODED IP VPS
+// URL API BARU SESUAI REQUEST
 const API_URL = 'https://wanzofc-dev.vercel.app/api';
 
 export const useAuthStore = defineStore('auth', {
@@ -16,18 +16,28 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(credentials) {
       const res = await axios.post(`${API_URL}/auth/login`, credentials);
-      this.token = res.data.token;
-      this.user = res.data;
-      localStorage.setItem('token', this.token);
-      localStorage.setItem('user', JSON.stringify(this.user));
+      this.setUserData(res.data);
     },
     
-    // FUNGSI BARU: Refresh data user tanpa logout
     async fetchProfile() {
       if (!this.token) return;
       try {
+        const res = await axios.get(`${API_URL}/auth/me`, {
+            headers: { Authorization: `Bearer ${this.token}` }
+        });
+        this.setUserData(res.data, false);
       } catch (e) {
-        console.error("Failed to refresh profile");
+        console.error("Gagal refresh profile:", e);
+        if(e.response && e.response.status === 401) this.logout();
+      }
+    },
+
+    setUserData(data, updateToken = true) {
+      this.user = data;
+      localStorage.setItem('user', JSON.stringify(data));
+      if (updateToken && data.token) {
+          this.token = data.token;
+          localStorage.setItem('token', data.token);
       }
     },
 

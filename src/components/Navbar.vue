@@ -1,28 +1,33 @@
 <template>
   <nav class="navbar" v-if="!configStore.loadingBoot">
     <div class="nav-container">
-      <div class="logo retro-font">DevCORE <span class="ver">v2.1</span></div>
+      <div class="logo retro-font">DevCORE <span class="ver">v2.2</span></div>
       
       <button class="menu-toggle" @click="isOpen = !isOpen">
         <i class="fas" :class="isOpen ? 'fa-times' : 'fa-bars'"></i>
       </button>
 
       <div :class="['nav-links', { 'active': isOpen }]">
-        <!-- LOGO/HOME -->
+        <!-- TOMBOL UPGRADE PLAN (BARU) -->
+        <router-link to="/pricing" class="btn-upgrade retro-font">
+            <i class="fas fa-rocket"></i> UPGRADE PLAN
+        </router-link>
+
         <router-link to="/" @click="isOpen = false" class="retro-font">HOME</router-link>
         
         <template v-if="authStore.isAuthenticated">
           <router-link to="/terminal" @click="isOpen = false" class="retro-font">TERMINAL</router-link>
-          
-          <!-- DOCS LINK -->
+          <router-link to="/history" @click="isOpen = false" class="retro-font">HISTORY</router-link>
+          <router-link to="/quotes" @click="isOpen = false" class="retro-font">QUOTES</router-link>
           <router-link to="/docs" @click="isOpen = false" class="retro-font">DOCS</router-link>
 
-          <!-- PROFILE & LOGOUT -->
           <div class="profile-group">
             <router-link to="/profile" @click="isOpen = false" class="retro-font profile-link">
-                <i class="fas fa-user-circle"></i> PROFILE
+                <img :src="authStore.user?.avatarUrl" class="nav-avatar" /> PROFILE
             </router-link>
+            
             <router-link v-if="authStore.isAdmin" to="/admin" @click="isOpen = false" class="retro-font text-gold">ADMIN</router-link>
+            
             <a @click="handleLogout" class="retro-font text-danger">LOGOUT</a>
           </div>
         </template>
@@ -62,14 +67,30 @@ const handleLogout = () => {
 .nav-links a { color: var(--text-dim); font-size: 0.7rem; transition: 0.3s; }
 .nav-links a:hover, .nav-links a.router-link-active { color: var(--accent); }
 .menu-toggle { display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
-.profile-group { display: flex; gap: 15px; border-left: 1px solid #333; padding-left: 15px; }
+.profile-group { display: flex; gap: 15px; border-left: 1px solid #333; padding-left: 15px; align-items: center; }
+.nav-avatar { width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin-right: 5px; border: 1px solid var(--accent); }
+
+/* STYLE KHUSUS TOMBOL UPGRADE */
+.btn-upgrade {
+    background: linear-gradient(45deg, #7f1d1d, #ef4444);
+    color: white !important;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    border: 1px solid #fca5a5;
+    animation: pulse 2s infinite;
+}
+.btn-upgrade:hover { transform: scale(1.05); }
+
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
 
 @media (max-width: 768px) {
   .menu-toggle { display: block; }
   .nav-links { position: absolute; top: 100%; left: 0; width: 100%; background: #020617; flex-direction: column; padding: 20px; border-bottom: 2px solid var(--primary); display: none; }
   .nav-links.active { display: flex; animation: slideDown 0.3s ease; }
   .nav-links a { font-size: 0.9rem; padding: 10px; border-bottom: 1px solid #1e293b; width: 100%; text-align: center; }
-  .profile-group { border: none; padding: 0; flex-direction: column; width: 100%; gap: 0; }
+  .profile-group { border: none; padding: 0; flex-direction: column; width: 100%; gap: 0; border-top: 1px solid #1e293b; padding-top: 10px; }
+  .btn-upgrade { width: 100%; text-align: center; margin-bottom: 10px; }
 }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

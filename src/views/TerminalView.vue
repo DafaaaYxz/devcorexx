@@ -1,6 +1,6 @@
 <template>
   <div class="layout-wrapper">
-    <!-- SIDEBAR (Sama seperti sebelumnya) -->
+    <!-- SIDEBAR SESSION -->
     <div class="sidebar" :class="{ 'collapsed': !showSidebar }">
       <div class="sidebar-header">
         <span v-if="showSidebar" class="retro-font" style="font-size:0.7rem">SESSIONS</span>
@@ -15,8 +15,9 @@
       </div>
     </div>
 
-    <!-- MAIN TERMINAL -->
+    <!-- MAIN TERMINAL AREA -->
     <div class="term-container">
+      <!-- HEADER -->
       <div class="term-header retro-font">
         <div style="display:flex; align-items:center; gap:10px;">
             <button v-if="!showSidebar" @click="showSidebar = true" class="btn-sidebar-toggle"><i class="fas fa-folder-open"></i></button>
@@ -25,30 +26,39 @@
             <span class="session-badge" v-if="currentSessionId && showSidebar">:: {{ getSessionName(currentSessionId) }}</span>
         </div>
         
-        <!-- TOMBOL RESET PINDAH KESINI (TONG SAMPAH) -->
         <button @click="resetHistory" class="btn-reset-header" title="Clear History">
             <i class="fas fa-trash-alt"></i> RESET
         </button>
       </div>
       
+      <!-- CHAT AREA (LAYOUT WHATSAPP STYLE) -->
       <div class="chat-area" ref="chatBox">
         <div v-if="messages.length === 0" class="welcome-msg">
             <div style="color:var(--primary); margin-bottom:10px;">SYSTEM: {{ currentAiName }} KERNEL READY.</div>
             waiting for input...
         </div>
+        
         <div v-for="(msg, i) in messages" :key="i" :class="['message-row', msg.role]">
-          <div class="sender retro-font">{{ msg.role === 'user' ? 'USER' : currentAiName }}</div>
-          <div v-if="msg.role === 'model'" class="content-wrapper">
-            <template v-for="(part, idx) in parseMessage(msg.content)" :key="idx">
-              <CodeCard v-if="part.type === 'code'" :content="part.content" />
-              <div v-else class="text-content" v-html="formatText(part.content)"></div>
-            </template>
+          <!-- Bubble Container -->
+          <div class="msg-bubble">
+            <!-- Sender Label -->
+            <div class="sender retro-font">{{ msg.role === 'user' ? 'USER' : currentAiName }}</div>
+            
+            <!-- AI Content (Smart Parsing) -->
+            <div v-if="msg.role === 'model'" class="content-wrapper">
+              <template v-for="(part, idx) in parseMessage(msg.content)" :key="idx">
+                <CodeCard v-if="part.type === 'code'" :content="part.content" />
+                <div v-else class="text-content" v-html="formatText(part.content)"></div>
+              </template>
+            </div>
+            
+            <!-- User Content -->
+            <div v-else class="text-content" v-html="formatText(msg.content)"></div>
           </div>
-          <div v-else class="text-content" v-html="formatText(msg.content)"></div>
         </div>
       </div>
 
-      <!-- INPUT AREA BARU -->
+      <!-- INPUT AREA -->
       <div class="input-area">
         <input type="file" ref="fileInput" @change="handleFileUpload" style="display:none">
         <button @click="$refs.fileInput.click()" class="btn-tool" title="Upload File"><i class="fas fa-paperclip"></i></button>
@@ -56,7 +66,6 @@
         <span class="retro-font text-accent">></span>
         <input v-model="inputText" @keyup.enter="sendMessage(null)" placeholder="Enter command..." :disabled="loading" ref="inputField">
         
-        <!-- TOMBOL KIRIM (PESAWAT) -->
         <button @click="sendMessage(null)" class="btn-send" :disabled="loading || !inputText">
             <i class="fas fa-paper-plane"></i>
         </button>
@@ -81,14 +90,13 @@ const showSidebar = ref(false);
 const chatBox = ref(null);
 const inputField = ref(null);
 const fileInput = ref(null);
-const API = 'https://devcore-backends.vercel.app/api';
+const API = 'http://146.190.98.149:5000/api';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 const currentAiName = computed(() => auth.user?.aiName || 'DevCORE');
 
 const scrollToBottom = () => nextTick(() => { if(chatBox.value) chatBox.value.scrollTop = chatBox.value.scrollHeight });
-const formatText = (text) => text.replace(/\n/g, '<br>');
+const formatText = (text) => text ? text.replace(/\n/g, '<br>') : '';
 
-// --- SESSION & CHAT LOGIC (Sama seperti sebelumnya, disederhanakan utk view) ---
 const loadSessions = async () => {
     try {
         const res = await axios.get(`${API}/chat/sessions`, headers);
@@ -116,6 +124,7 @@ const deleteSession = async (id) => {
 const getSessionName = (id) => { const s = sessions.value.find(s => s._id === id); return s ? s.title : 'UNKNOWN'; };
 
 const parseMessage = (fullText) => {
+  if(!fullText) return [];
   const count = (fullText.match(/```/g) || []).length;
   let safeText = fullText + (count % 2 !== 0 ? '\n```' : '');
   return safeText.split(/(```[\s\S]*?```)/g).map(part => ({
@@ -142,35 +151,55 @@ const sendMessage = async (overrideMsg = null) => {
   const txt = overrideMsg || inputText.value;
   if(!txt.trim() || loading.value) return;
   if(!overrideMsg) inputText.value = '';
+  
   if(!currentSessionId.value) await createNewSession();
 
   messages.value.push({ role: 'user', content: overrideMsg ? `[FILE ANALYSIS]` : txt });
-  scrollToBottom();
   loading.value = true;
+  scrollToBottom();
 
   try {
     messages.value.push({ role: 'model', content: '' }); 
     const aiMsgIndex = messages.value.length - 1;
+
     const response = await fetch(`${API}/chat/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth.token}` },
       body: JSON.stringify({ message: txt, sessionId: currentSessionId.value })
     });
+
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
-      messages.value[aiMsgIndex].content += decoder.decode(value, { stream: true });
+      const chunk = decoder.decode(value, { stream: true });
+      if(messages.value[aiMsgIndex]) {
+          messages.value[aiMsgIndex].content += chunk;
+      }
       scrollToBottom();
     }
     loadSessions();
-  } catch(e) { messages.value[messages.value.length-1].content += "\n[ERROR]"; } 
-  finally { loading.value = false; scrollToBottom(); nextTick(() => inputField.value?.focus()); }
+  } catch(e) { 
+      if(messages.value.length > 0) {
+          const lastMsg = messages.value[messages.value.length-1];
+          if(lastMsg.role === 'model') lastMsg.content += "\n[SYSTEM ERROR: CONNECTION LOST]";
+      }
+  } 
+  finally { 
+      loading.value = false; 
+      scrollToBottom(); 
+      nextTick(() => inputField.value?.focus()); 
+  }
 };
 
-const resetHistory = async () => { messages.value = []; }; // Clear view only for now
-onMounted(() => { auth.fetchProfile(); loadSessions(); setTimeout(() => inputField.value?.focus(), 500); });
+const resetHistory = async () => { messages.value = []; }; 
+
+onMounted(async () => { 
+    await auth.fetchProfile();
+    await loadSessions();
+    setTimeout(() => inputField.value?.focus(), 500); 
+});
 </script>
 
 <style scoped>
@@ -190,16 +219,67 @@ onMounted(() => { auth.fetchProfile(); loadSessions(); setTimeout(() => inputFie
 .term-header { background: #0f172a; color: white; padding: 10px; font-size: 0.7rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--primary); height: 50px; }
 .status-dot { width: 8px; height: 8px; background: #0f0; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #0f0; }
 .btn-reset-header { background: #7f1d1d; border: 1px solid #ef4444; color: white; padding: 5px 10px; font-size: 0.6rem; cursor: pointer; border-radius: 4px; }
-.btn-reset-header:hover { background: #b91c1c; }
 .btn-sidebar-toggle { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
 
-.chat-area { flex: 1; overflow-y: auto; padding: 20px; font-family: 'Roboto', sans-serif; scroll-behavior: smooth; }
-.message-row { margin-bottom: 25px; border-left: 2px solid #333; padding-left: 15px; }
-.message-row.user { border-color: var(--accent); }
-.message-row.model { border-color: var(--primary); }
-.sender { font-size: 0.7rem; color: #666; margin-bottom: 8px; }
+/* CHAT AREA MODIFICATIONS FOR WHATSAPP STYLE */
+.chat-area { 
+    flex: 1; overflow-y: auto; padding: 20px; 
+    font-family: 'Roboto', sans-serif; scroll-behavior: smooth; 
+    display: flex; flex-direction: column; gap: 20px;
+}
+
+.message-row { 
+    display: flex; 
+    width: 100%; 
+}
+
+/* USER ALIGN RIGHT */
+.message-row.user { 
+    justify-content: flex-end; 
+}
+
+/* AI ALIGN LEFT */
+.message-row.model { 
+    justify-content: flex-start; 
+}
+
+/* BUBBLE STYLE */
+.msg-bubble {
+    max-width: 85%;
+    padding: 15px;
+    border-radius: 10px;
+    position: relative;
+    border: 1px solid;
+    min-width: 100px;
+}
+
+/* User Specific Style */
+.message-row.user .msg-bubble {
+    background: rgba(59, 130, 246, 0.1); /* Blue tint */
+    border-color: var(--accent);
+    border-top-right-radius: 0; /* Corner effect */
+}
+.message-row.user .sender {
+    text-align: right;
+    color: var(--accent);
+}
+
+/* AI Specific Style */
+.message-row.model .msg-bubble {
+    background: rgba(30, 58, 138, 0.15); /* Darker blue tint */
+    border-color: var(--primary);
+    border-top-left-radius: 0; /* Corner effect */
+}
+.message-row.model .sender {
+    text-align: left;
+    color: var(--primary);
+}
+
+.sender { font-size: 0.65rem; margin-bottom: 8px; font-weight: bold; opacity: 0.8; }
 .content-wrapper { display: flex; flex-direction: column; gap: 10px; }
-.text-content { line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; color: #e2e8f0; }
+.text-content { line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; color: #e2e8f0; word-break: break-word; }
+
+.welcome-msg { color: #444; font-family: 'Press Start 2P'; font-size: 0.7rem; line-height: 2; margin-bottom: 20px; text-align: center; }
 
 .input-area { padding: 15px; background: #050505; display: flex; align-items: center; gap: 10px; border-top: 1px solid #1e293b; }
 .btn-tool { background: #1e293b; border: 1px solid #333; color: #aaa; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 4px; }

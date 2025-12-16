@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Press+Start+2P&family=Fira+Code:wght@400;600&display=swap');
-/* Hack Font usually needs CDN or local, we assume CDN or generic mono fallback */
 
 :root {
   --bg-color: #020617;
@@ -14,25 +13,77 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
+
+/* DEFAULT FONT: ROBOTO (Mudah Dibaca) */
+body { 
+  background-color: var(--bg-color); 
+  color: var(--text-main); 
+  font-family: 'Roboto', sans-serif; 
+  overflow-x: hidden; 
+  font-size: 14px;
+}
+
 a { text-decoration: none; color: inherit; }
 
-/* FONT CLASSES */
-.font-roboto * { font-family: 'Roboto', sans-serif; }
-.font-press * { font-family: 'Press Start 2P', cursive; line-height: 1.6; font-size: 0.8rem; }
-.font-fira * { font-family: 'Fira Code', monospace; }
-.font-hack * { font-family: 'Courier New', monospace; } /* Fallback for Hack */
+/* RETRO FONT UTILITY (Hanya untuk Judul/Logo) */
+.retro-font, h1, h2, h3, .logo, .term-header { 
+  font-family: 'Press Start 2P', cursive; 
+  line-height: 1.6; 
+  text-transform: uppercase; 
+}
 
-/* GLOBAL STYLES */
-.retro-font, h1, h2, h3, .logo, .term-header { font-family: 'Press Start 2P', cursive; line-height: 1.6; text-transform: uppercase; }
+/* INPUT FIX (Supaya tidak berantakan) */
+input, select, textarea, button {
+  font-family: 'Roboto', sans-serif; /* Default font input */
+}
 
+/* FONT OVERRIDES (Jika user pilih font lain di setting) */
+body.font-press * { font-family: 'Press Start 2P', cursive !important; font-size: 0.7rem; line-height: 1.8; }
+body.font-fira * { font-family: 'Fira Code', monospace !important; }
+body.font-hack * { font-family: 'Courier New', monospace !important; }
+
+/* COMPONENT STYLES */
 .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-.btn { background-color: var(--primary); color: white; padding: 12px 15px; border: 1px solid var(--accent); font-family: 'Press Start 2P', cursive; font-size: 0.6rem; cursor: pointer; transition: 0.3s; text-align: center; }
-.btn:hover { background-color: var(--accent); box-shadow: 0 0 10px var(--primary); }
+
+.btn {
+  background-color: var(--primary);
+  color: white;
+  padding: 12px 20px;
+  border: 1px solid var(--accent);
+  font-family: 'Press Start 2P', cursive; /* Tombol tetap retro */
+  font-size: 0.6rem;
+  cursor: pointer;
+  transition: 0.3s;
+  text-align: center;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.btn:hover { background-color: var(--accent); box-shadow: 0 0 15px var(--primary); }
 .btn-danger { background-color: #7f1d1d; border-color: var(--danger); }
 .btn.w-full { width: 100%; display: block; }
-.card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
-.input-field { width: 100%; padding: 15px; background: #0b1120; border: 1px solid var(--border); color: white; margin-bottom: 15px; outline: none; font-family: inherit; }
-.input-field:focus { border-color: var(--accent); }
+
+.card { 
+  background: var(--card-bg); 
+  border: 1px solid var(--border); 
+  padding: 25px; 
+  margin-bottom: 20px; 
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px;
+  background: #020617;
+  border: 1px solid var(--border);
+  color: white;
+  margin-bottom: 15px;
+  outline: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+
+/* ANIMATION */
 @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.slide-in { animation: slideDown 0.3s ease-out; }
+.slide-in { animation: slideDown 0.4s ease-out; }

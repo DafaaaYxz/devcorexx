@@ -90,7 +90,7 @@ const showSidebar = ref(false);
 const chatBox = ref(null);
 const inputField = ref(null);
 const fileInput = ref(null);
-const API = 'http://146.190.98.149:5000/api';
+const API = 'https://devcore-backends.vercel.app/api';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 const currentAiName = computed(() => auth.user?.aiName || 'DevCORE');
 

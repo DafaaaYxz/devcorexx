@@ -107,7 +107,7 @@ import axios from 'axios';
 
 const auth = useAuthStore();
 const pass = reactive({ old: '', new: '' });
-const API = 'https://devcorexx-api.vercel.app/api';
+const API = 'https://wanzofc-dev.vercel.app/api';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 
 const formatDate = (dateString) => {

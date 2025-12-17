@@ -95,7 +95,7 @@ const settings = reactive({
     sseoEnabled: false,
     sseoCode: ''
 });
-const API = 'https://devcorexx-api.vercel.app/api';
+const API = 'https://wanzofc-dev.vercel.app/api';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 
 const getQrUrl = (user, secret) => {

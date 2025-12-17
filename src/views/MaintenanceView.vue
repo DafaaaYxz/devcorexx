@@ -22,7 +22,7 @@ const router = useRouter();
 
 const checkStatus = async () => {
     try {
-        const res = await axios.get('https://wanzofc-dev.vercel.app/api/system/config'); // Pastikan route public ini ada/dibuat
+        const res = await axios.get('https://devcorexx-api.vercel.app/api/api/system/config'); // Pastikan route public ini ada/dibuat
         if(!res.data.maintenance) router.push('/');
         else alert('System is still in maintenance.');
     } catch(e) { alert('System Offline.'); }

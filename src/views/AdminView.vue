@@ -39,7 +39,7 @@ const tab = ref('users');
 const users = ref([]);
 const quotes = ref([]);
 const config = ref({ maintenanceMode: false, apiKeys: [] });
-const API = 'https://wanzofc-dev.vercel.app/api/admin';
+const API = 'https://devcorexx-api.vercel.app/api/admin';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 
 const loadData = async () => {

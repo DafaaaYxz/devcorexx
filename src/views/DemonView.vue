@@ -101,7 +101,7 @@ import { useAuthStore } from '../stores/authStore';
 const auth = useAuthStore();
 const logs = ref(['DEMON PANEL INITIALIZED...', 'READY FOR EXPLOITS.']);
 const logBody = ref(null);
-const API = 'https://wanzofc-dev.vercel.app/api/demon';
+const API = 'https://devcorexx-api.vercel.app/api/demon';
 const headers = { headers: { Authorization: `Bearer ${auth.token}` } };
 
 const inputs = reactive({

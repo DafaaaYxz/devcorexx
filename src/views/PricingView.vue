@@ -5,9 +5,9 @@
     
     <div class="pricing-grid">
         
-        <!-- PLAN 1: PREMIUM -->
+        <!-- PLAN 1: BASIC -->
         <div class="price-card">
-            <h2 class="retro-font plan-title">PREMIUM</h2>
+            <h2 class="retro-font plan-title">BASIC</h2>
             <div class="price">15K <span style="font-size:1rem; color:#888;">/ mo</span></div>
             <ul class="features">
                 <li><i class="fas fa-check"></i> 5,000 Token API Limit</li>
@@ -18,26 +18,26 @@
                 <li><i class="fas fa-shield-alt"></i> Role: <strong>PREMIUM</strong></li>
             </ul>
             <!-- BUTTON WITH WA LINK -->
-            <button @click="buyPlan('premium')" class="btn btn-buy">BUY PREMIUM</button>
+            <button @click="buyPlan('BASIC')" class="btn btn-buy">BUY BASIC</button>
         </div>
 
-        <!-- PLAN 2: DEMON (SPECIAL) -->
+        <!-- PLAN 2: PREMIUM (SPECIAL) -->
         <div class="price-card demon-card">
             <div class="best-badge">BEST VALUE</div>
-            <h2 class="retro-font plan-title" style="color:#ef4444;">DEMON</h2>
+            <h2 class="retro-font plan-title" style="color:#ef4444;">PREMIUM</h2>
             <div class="price">25K <span style="font-size:1rem; color:#fca5a5;">/ life</span></div>
             <ul class="features">
                 <li><i class="fas fa-check"></i> <strong>UNLIMITED TOKEN</strong></li>
                 <li><i class="fas fa-check"></i> Upload & Analyze Images</li>
                 <li><i class="fas fa-check"></i> Custom AI & Dev Name</li>
-                <li><i class="fas fa-skull"></i> Role: <strong>DEMON</strong></li>
+                <li><i class="fas fa-skull"></i> Role: <strong>PREMIUM</strong></li>
             </ul>
 
-            <!-- DEMON FEATURES TOGGLE -->
+            <!-- PREMIUM FEATURES TOGGLE -->
             <div class="demon-extras">
                 <button @click="showDemon = !showDemon" class="btn-toggle">
                     <i class="fas" :class="showDemon ? 'fa-chevron-up' : 'fa-chevron-down'"></i> 
-                    SHOW DEMON CAPABILITIES
+                    SHOW PREMIUM CAPABILITIES
                 </button>
                 
                 <div v-if="showDemon" class="extra-list slide-down">
@@ -55,7 +55,7 @@
             </div>
 
             <!-- BUTTON WITH WA LINK -->
-            <button @click="buyPlan('demon')" class="btn btn-demon">BECOME DEMON</button>
+            <button @click="buyPlan('PREMIUM')" class="btn btn-demon">BECOME PREMIUM</button>
         </div>
 
     </div>
@@ -71,9 +71,9 @@ const buyPlan = (plan) => {
     let message = "";
 
     if (plan === 'premium') {
-        message = "Halo Admin DevCORE, saya ingin membeli paket PREMIUM (15K). Mohon info pembayarannya.";
+        message = "Halo Admin DevCORE, saya ingin membeli paket BASIC (15K). Mohon info pembayarannya.";
     } else if (plan === 'demon') {
-        message = "Halo Admin DevCORE, saya ingin membeli paket DEMON (25K) untuk akses Unlimited & Fitur Jahat. Mohon info pembayarannya.";
+        message = "Halo Admin DevCORE, saya ingin membeli paket PREMIUM (25K) untuk akses Unlimited & Fitur Jahat. Mohon info pembayarannya.";
     }
 
     // Encode URL agar spasi dan karakter khusus terbaca

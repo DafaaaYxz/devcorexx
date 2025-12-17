@@ -67,7 +67,7 @@ import { ref } from 'vue';
 const showDemon = ref(false);
 
 const buyPlan = (plan) => {
-    const phoneNumber = "6288801074059";
+    const phoneNumber = "6285739115205";
     let message = "";
 
     if (plan === 'premium') {

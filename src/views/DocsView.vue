@@ -5,7 +5,7 @@
     <div class="card">
         <h3 class="retro-font">INTRODUCTION</h3>
         <p>Welcome to DevCORE External API. You can interact with the AI using your Personal API Key.</p>
-        <p>Base URL: <span class="code-snippet">https://wanzofc-dev.vercel.app/api/v1</span></p>
+        <p>Base URL: <span class="code-snippet">https://devcorexx-api.vercel.app/api/v1</span></p>
     </div>
 
     <div class="card">
@@ -22,7 +22,7 @@
         
         <h4 style="margin-top:20px;">cURL Example</h4>
         <div class="code-block">
-<pre>curl -X POST https://wanzofc-dev.vercel.app/api/v1/chat/completions \
+<pre>curl -X POST https://devcorexx-api.vercel.app/api/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_PERSONAL_KEY_HERE" \
   -d '{
@@ -36,7 +36,7 @@
         <div class="code-block">
 <pre>import requests
 
-url = "https://wanzofc-dev.vercel.app/api/v1/chat/completions"
+url = "https://devcorexx-api.vercel.app/api/v1/chat/completions"
 headers = {
     "x-api-key": "YOUR_PERSONAL_KEY_HERE",
     "Content-Type": "application/json"
